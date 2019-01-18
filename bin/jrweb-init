@@ -2,7 +2,6 @@
 
 const download = require('download-git-repo')
 const program = require('commander')
-const exec = require('child_process').exec
 const exists = require('fs').existsSync
 const path = require('path')
 const ora = require('ora')
@@ -17,8 +16,7 @@ const checkVersion = require('../lib/check-version')
 const localPath = require('../lib/local-path')
 const utils = require('../lib/utils')
 
-const isLocalPath = localPath.isLocalPath
-const getTemplatePath = localPath.getTemplatePath
+const { isLocalPath, getTemplatePath } = localPath
 
 /**
  * Usage.
@@ -143,8 +141,8 @@ function downloadAndGenerate (template) {
     generate(name, tmp, to, err => {
       if (err) logger.fatal(err)
 			console.log()
-			utils.genConfig(to, { type, template });
+			utils.genConfig(to, { name, type, template });
       logger.success('已生成项目 "%s".', name)
-    })
+		})
   })
 }

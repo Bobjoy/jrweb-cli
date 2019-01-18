@@ -2,78 +2,75 @@
 
 const download = require('download-git-repo')
 const program = require('commander')
-const exec = require('child_process').exec
 const exists = require('fs').existsSync
 const path = require('path')
 const ora = require('ora')
 const home = require('user-home')
 const tildify = require('tildify')
 const chalk = require('chalk')
-const inquirer = require('inquirer')
 const rm = require('rimraf').sync
 const logger = require('../lib/logger')
-const generate = require('../lib/generate')
 const checkVersion = require('../lib/check-version')
 const localPath = require('../lib/local-path')
+const utils = require('../lib/utils')
+const generate = require('../lib/generate')
 
-const isLocalPath = localPath.isLocalPath
-const getTemplatePath = localPath.getTemplatePath
-
-/**
- * Usage.
- */
-program
-  .usage('<模板类型> [项目名称]')
-
-/**
- * Help.
- */
-program.on('--help', () => {
-  console.log('  示例:')
-  console.log()
-  console.log(chalk.gray('    # 更新模板到最新'))
-  console.log('    $ jrweb upgrade')
-  console.log()
-})
-
-/**
- * Help.
- */
-function help () {
-  program.parse(process.argv)
-  if (program.args.length < 1) return program.help()
-}
-help()
+const { isLocalPath, getTemplatePath } = localPath
+const { getConfig } = utils;
 
 /**
  * Settings.
  */
-const to = path.resolve(rawName || '.')
-path.join(to, '.jrweb.json');
+const dir = path.resolve('.')
 const clone = /*program.clone || */false
 
-// vue脚手架模板
-if (template === 'vux') {
-	template = 'wangyue/jr-vux-mobile'
-}
-// 微信模板
-if (template === 'wx') {
-	template = 'baofangliang/jr-webcommons'
-}
-// mui模板
-if (template === 'mui') {
-	template = 'baofangliang/jr-webcommons'
-}
-// pc模板
-if (template === 'pc') {
-	template = 'baofangliang/jr-webcommons'
+getConfig(dir, (err, conf) => {
+	if (err) {
+		logger.fatal(`读取配置失败 ${confPath}`);
+	}
+	upgrade(conf);
+});
+
+
+function upgrade({ name, type, template }) {
+	const tmp = path.join(home, '.jrweb-templates', template.replace(/[\/:]/g, '-'))
+	if (program.offline) {
+		console.log(`> 使用本地模板 ${chalk.yellow(tildify(tmp))}`)
+		template = tmp
+	}
+
+	// check if template is local
+  if (isLocalPath(template)) {
+		const templatePath = getTemplatePath(template)
+		const to = path.join(dir, name);
+    if (exists(templatePath)) {
+			generate(name, tmp, to, err => {
+				if (err) logger.fatal(err)
+				console.log()
+				logger.success('已更新模板 "%s".', type)
+			}, false)
+    } else {
+      logger.fatal('本地模板 "%s" 不存在', template)
+    }
+  } else {
+    checkVersion(() => {
+      const spinner = ora('正在下载模板...')
+			spinner.start()
+			// Remove if local template exists
+			if (exists(tmp)) rm(tmp)
+			download(`gitlab:http://192.168.1.53:${template}#master`, tmp, { clone }, err => {
+				spinner.stop()
+				if (err) logger.fatal(`下载模板失败 ${template}: ${err.message.trim()}`)
+				generate(name, tmp, to, err => {
+					if (err) logger.fatal(err)
+					console.log()
+					logger.success('已更新模板 "%s".', type)
+				}, false)
+			})
+    })
+  }
 }
 
-const tmp = path.join(home, '.jrweb-templates', template.replace(/[\/:]/g, '-'))
-if (!program.remote) {
-  console.log(`> 使用本地模板 ${chalk.yellow(tildify(tmp))}`)
-  template = tmp
-}
 
 /**
  * Padding.
@@ -82,47 +79,3 @@ console.log()
 process.on('exit', () => {
   console.log()
 })
-
-/**
- * Check, download and generate the project.
- */
-function run () {
-  // check if template is local
-  if (isLocalPath(template)) {
-    const templatePath = getTemplatePath(template)
-    if (exists(templatePath)) {
-      generate(name, templatePath, to, err => {
-        if (err) logger.fatal(err)
-        console.log()
-        logger.success('已生成项目 "%s".', name)
-      })
-    } else {
-      logger.fatal('本地模板 "%s" 不存在，请使用--remote选项.', template)
-    }
-  } else {
-    checkVersion(() => {
-      downloadAndGenerate(template)
-    })
-  }
-}
-
-/**
- * Download a generate from a template repo.
- *
- * @param {String} template
- */
-function downloadAndGenerate (template) {
-  const spinner = ora('正在下载模板...')
-	spinner.start()
-	// Remove if local template exists
-	if (exists(tmp)) rm(tmp)
-  download(`gitlab:http://192.168.1.53:${template}#master`, tmp, { clone }, err => {
-		spinner.stop()
-		if (err) logger.fatal(`下载模板失败 ${template}: ${err.message.trim()}`)
-    generate(name, tmp, to, err => {
-      if (err) logger.fatal(err)
-      console.log()
-      logger.success('已生成项目 "%s".', name)
-    })
-  })
-}
