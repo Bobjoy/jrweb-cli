@@ -16,25 +16,29 @@ const utils = require('../lib/utils')
 const generate = require('../lib/generate')
 
 const { isLocalPath, getTemplatePath } = localPath
-const { printLogo, getConfig } = utils;
+const { printLogo, getConfig } = utils
 
 /**
  * Settings.
  */
-const dir = path.resolve('.')
+const to = path.resolve('.')
 const clone = /*program.clone || */false
 
 /**
  * LOGO
  */
-printLogo();
+printLogo()
 
 /**
  * 获取配置并更新模板
  */
-getConfig(dir, (err, conf) => {
-	if (err) logger.fatal(`读取配置失败 ${confPath}`)
-	upgrade(conf);
+getConfig(to, (err, conf) => {
+	if (err) {
+		logger.fatal(`读取配置失败 ${confPath}`)
+	} else {
+		upgrade(conf)
+	}
+
 });
 
 /**
@@ -50,12 +54,14 @@ function upgrade({ name, type, template }) {
 	// check if template is local
   if (isLocalPath(template)) {
 		const templatePath = getTemplatePath(template)
-		const to = path.join(dir, name);
     if (exists(templatePath)) {
 			generate(name, tmp, to, err => {
-				if (err) logger.fatal(err)
-				console.log()
-				logger.success('已更新模板 "%s".', type)
+				if (err) {
+					logger.fatal(err)
+				} else {
+					console.log()
+					logger.success('已更新模板 "%s".', type)
+				}
 			}, false)
     } else {
       logger.fatal('本地模板 "%s" 不存在', template)
@@ -68,12 +74,15 @@ function upgrade({ name, type, template }) {
 			if (exists(tmp)) rm(tmp)
 			download(`gitlab:http://192.168.1.53:${template}#master`, tmp, { clone }, err => {
 				spinner.stop()
-				if (err) logger.fatal(`下载模板失败 ${template}: ${err.message.trim()}`)
-				generate(name, tmp, to, err => {
-					if (err) logger.fatal(err)
-					console.log()
-					logger.success('已更新模板 "%s".', type)
-				}, false)
+				if (err) {
+					logger.fatal(`下载模板失败 ${template}: ${err.message.trim()}`)
+				} else {
+					generate(name, tmp, to, err => {
+						if (err) logger.fatal(err)
+						console.log()
+						logger.success('已更新模板 "%s".', type)
+					}, false)
+				}
 			})
     })
   }
