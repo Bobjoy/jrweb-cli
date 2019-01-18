@@ -33,6 +33,7 @@ printLogo()
  * 获取配置并更新模板
  */
 getConfig(to, (err, conf) => {
+	console.log(`> 更新模板 ${chalk.yellow(tildify(conf.type))}`)
 	if (err) {
 		logger.fatal(`读取配置失败 ${confPath}`)
 	} else {
