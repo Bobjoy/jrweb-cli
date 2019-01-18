@@ -2,11 +2,10 @@
   "name": "jrweb-cli",
   "version": "0.0.1",
   "description": "JR前端脚手架",
-  "main": "index.js",
   "bin": {
-		"jrweb": "bin/jrweb",
-		"jrweb-init": "bin/jrweb-init",
-		"jrweb-upgrade": "bin/jrweb-upgrade"
+    "jrweb": "bin/jrweb",
+    "jrweb-init": "bin/jrweb-init",
+    "jrweb-upgrade": "bin/jrweb-upgrade"
   },
   "dependencies": {
     "async": "^2.4.0",
