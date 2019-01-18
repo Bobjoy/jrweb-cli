@@ -16,7 +16,7 @@ const utils = require('../lib/utils')
 const generate = require('../lib/generate')
 
 const { isLocalPath, getTemplatePath } = localPath
-const { getConfig } = utils;
+const { printLogo, getConfig } = utils;
 
 /**
  * Settings.
@@ -24,14 +24,22 @@ const { getConfig } = utils;
 const dir = path.resolve('.')
 const clone = /*program.clone || */false
 
+/**
+ * LOGO
+ */
+printLogo();
+
+/**
+ * 获取配置并更新模板
+ */
 getConfig(dir, (err, conf) => {
-	if (err) {
-		logger.fatal(`读取配置失败 ${confPath}`);
-	}
+	if (err) logger.fatal(`读取配置失败 ${confPath}`)
 	upgrade(conf);
 });
 
-
+/**
+ * 更新模板
+ */
 function upgrade({ name, type, template }) {
 	const tmp = path.join(home, '.jrweb-templates', template.replace(/[\/:]/g, '-'))
 	if (program.offline) {
@@ -70,7 +78,6 @@ function upgrade({ name, type, template }) {
     })
   }
 }
-
 
 /**
  * Padding.
