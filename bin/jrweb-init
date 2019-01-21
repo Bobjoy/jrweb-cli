@@ -93,20 +93,22 @@ process.on('exit', () => {
   console.log()
 })
 
-if (inPlace || exists(to)) {
-  inquirer.prompt([{
-    type: 'confirm',
-    message: inPlace
-      ? '是否在当前目录创建项目？'
-      : '项目已存在，是否覆盖？',
-    name: 'ok'
-  }]).then(answers => {
-    if (answers.ok) {
-      run()
-    }
-  }).catch(logger.fatal)
-} else {
-  run()
+function init() {
+	if (inPlace || exists(to)) {
+		inquirer.prompt([{
+			type: 'confirm',
+			message: inPlace
+				? '是否在当前目录创建项目？'
+				: '项目已存在，是否覆盖？',
+			name: 'ok'
+		}]).then(answers => {
+			if (answers.ok) {
+				run()
+			}
+		}).catch(logger.fatal)
+	} else {
+		run()
+	}
 }
 
 /**
